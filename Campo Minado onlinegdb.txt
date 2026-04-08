@@ -1,0 +1,235 @@
+#include <bits/stdc++.h>
+#include <locale.h>
+using namespace std;
+
+int ChecarMax (int k){
+	switch (k){
+		case 8: return 0;
+		default: return 1;
+	}
+}
+int ChecarMin (int k){
+	switch (k){
+		case 0: return 0;
+		default: return -1;
+	}	
+}
+
+int conversorcoluna (char usery){
+	switch (usery){
+		case 'A':
+		case 'a':
+			return 0;
+		case 'B':
+		case 'b':
+			return 1;
+		case 'C':
+		case 'c':
+			return 2;
+		case 'D':
+		case 'd':
+			return 3;
+		case 'E':
+		case 'e':
+			return 4;
+		case 'F':
+		case 'f':
+			return 5;
+		case 'G':
+		case 'g':
+			return 6;
+		case 'H':
+		case 'h':
+			return 7;
+		case 'I':
+		case 'i':
+			return 8;
+		
+		default:
+			return 10;
+		
+	}
+}
+
+void imprimirtela (char tela[9][9]){
+	printf("   A  B  C  D  E  F  G  H  I\n");
+	
+	for (int i=0 ; i<9 ; i++){
+		printf("%d ", i+1);
+		
+		for (int j=0 ; j<9 ; j++)
+			printf(" %c ", tela[i][j]);	
+			
+		printf("\n");
+	}
+}
+
+int main () {
+	srand(time(NULL));
+	setlocale(LC_ALL,"");
+	
+	printf("    *****CAMPO MINADO*****\n");
+	printf("***Tabuleiro 9x9 e 10 bombas***\n\n");
+	
+	//Gerar tela inicial
+	char tela[9][9];
+	for (int i=0 ; i<=9 ; i++)
+		for (int j=0 ; j<9 ; j++)
+			tela[i][j] = {'+'};
+	
+	//Geração de Tabuleiro
+	char tabuleiro[9][9];
+	for (int i=0 ; i<=9 ; i++)
+		for (int j=0 ; j<9 ; j++)
+			tabuleiro[i][j] = {' '};
+			
+	//Primeiro Chute
+	imprimirtela (tela);
+	printf("Escolha sua coordenada (número e depois letra): ");
+	int usery, userx, XDigitado; char YDigitado;
+	scanf("%d %c", &XDigitado, &YDigitado);
+	usery = conversorcoluna(YDigitado);
+	userx = XDigitado -1;
+	
+	while (userx>=9 || userx<0 || usery>=9 || usery<0 || tela[userx][usery] == tabuleiro[userx][usery]){
+		if (tela[userx][usery] == tabuleiro[userx][usery])
+			printf("Coordenada já escolhida, favor digitar novamente: ");
+		else
+			printf("Coordenada Inválida, favor digitar novamente: ");
+		
+		scanf("%d %c", &XDigitado, &YDigitado);
+		usery = conversorcoluna(YDigitado);
+		userx = XDigitado -1;
+	}
+			
+	//SalvaGuarda (No campo minado, o primeiro chute nunca é uma bomba)
+	int xmin = ChecarMin (userx);
+	int ymin = ChecarMin (usery);
+	int xmax = ChecarMax (userx);
+	int ymax = ChecarMax (usery);
+	for (int i=xmin ; i<=xmax ; i++)
+		for (int j=ymin ; j<=ymax ; j++)
+			tabuleiro[userx + i][usery + j] = 'P';
+	
+	//Geração de Bombas
+	int BombasFaltando = 10;
+	int bombax, bombay;
+	while (BombasFaltando > 0){
+		bombax = rand()%9;
+		bombay = rand()%9;
+		if (tabuleiro[bombax][bombay] != 'X' && tabuleiro[bombax][bombay] != 'P'){
+			tabuleiro[bombax][bombay] = 'X';
+			BombasFaltando--;
+		}
+	}
+	
+	//Resto do Tabuleiro
+	int AoRedor;
+	for (int i=0 ; i<=9 ; i++)
+		for (int j=0 ; j<9 ; j++)
+			if (tabuleiro[i][j] != 'X') {
+				AoRedor = 0;
+				
+				int xmin = ChecarMin (i);
+				int ymin = ChecarMin (j);
+				int xmax = ChecarMax (i);
+				int ymax = ChecarMax (j);
+				
+				for (int checkx = xmin ; checkx <= xmax ; checkx++)
+					for (int checky = ymin ; checky <= ymax ; checky++)
+						if (tabuleiro[i + checkx][j + checky] == 'X')
+							AoRedor++;
+				
+				if (AoRedor == 0)
+					tabuleiro[i][j] = ' ';
+				else
+					tabuleiro[i][j] = (char)(AoRedor + '0'); //Vi na net transformar int pra char
+				}
+	
+	//Registrando Primeira Jogada
+	tela[userx][usery] = tabuleiro[userx][usery];
+	//Se der 0 limpa em volta
+	for (int repeticoes=0 ; repeticoes<8 ; repeticoes++)
+		for (int a=0 ; a<9 ; a++)
+			for (int b=0 ; b<9 ; b++)
+				if (tela[a][b] == ' '){
+					int xmin = ChecarMin (a);
+					int ymin = ChecarMin (b);
+					int xmax = ChecarMax (a);
+					int ymax = ChecarMax (b);
+					
+					for (int x= xmin ; x<=xmax ; x++)
+						for (int y= ymin ; y<= ymax ; y++)
+							tela[a + x][b + y] = tabuleiro[a + x][b + y];
+				}
+	
+	//imprimirtela(tabuleiro);		//Pra eu testar erros na geração de tabuleiro
+	
+	//Jogo de Verdade	
+	int QuadRevelados = 0;
+	bool JogoAcabou = false;
+while (JogoAcabou == false){
+	
+	//Jogada
+	printf("\n");
+	imprimirtela (tela);
+	printf("Escolha sua coordenada (número e depois letra): ");
+	scanf("%d %c", &XDigitado, &YDigitado);
+	usery = conversorcoluna(YDigitado);
+	userx = XDigitado -1;
+	
+	while (userx>=9 || userx<0 || usery>=9 || usery<0 || tela[userx][usery] == tabuleiro[userx][usery]){
+		if (tela[userx][usery] == tabuleiro[userx][usery])
+			printf("Coordenada já escolhida, favor digitar novamente: ");
+		else
+			printf("Coordenada Inválida, favor digitar novamente: ");
+		
+		scanf("%d %c", &XDigitado, &YDigitado);
+		usery = conversorcoluna(YDigitado);
+		userx = XDigitado -1;
+	}
+	
+	//Checa se Perdeu
+	if (tabuleiro[userx][usery] == 'X')
+		JogoAcabou = true;
+	
+	tela[userx][usery] = tabuleiro[userx][usery];
+	
+	//Se for 0 varre em volta
+	for (int repeticoes=0 ; repeticoes<8 ; repeticoes++)
+		for (int a=0 ; a<9 ; a++)
+			for (int b=0 ; b<9 ; b++)
+				if (tela[a][b] == ' '){
+					int xmin = ChecarMin (a);
+					int ymin = ChecarMin (b);
+					int xmax = ChecarMax (a);
+					int ymax = ChecarMax (b);
+					
+					for (int x= xmin ; x<=xmax ; x++)
+						for (int y= ymin ; y<= ymax ; y++)
+							tela[a + x][b + y] = tabuleiro[a + x][b + y];
+				}
+					
+	//Checa quantos quadrados estão abertos
+	QuadRevelados = 0;
+	for (int QRi=0 ; QRi<9 ; QRi++)
+		for (int QRj=0 ; QRj<9 ; QRj++)
+			if (tela[QRi][QRj] == tabuleiro[QRi][QRj])
+				QuadRevelados++;
+	
+	//Se 71 quadrados estiverem abertos (81 do campo menos 10 bombas) o jogo acaba
+	if (QuadRevelados == 71)
+		JogoAcabou = true;
+}
+	
+	if (tabuleiro[userx][usery] == 'X'){
+		tela[userx][usery] = tabuleiro[userx][usery];
+		imprimirtela (tela);
+		printf("\nVocê Perdeu!\n");
+		imprimirtela (tabuleiro);
+	}
+	else{
+	imprimirtela(tela);
+	printf("\nParabéns, você venceu!");
+	}
+}
